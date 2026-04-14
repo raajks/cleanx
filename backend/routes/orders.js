@@ -4,13 +4,35 @@ const Order = require('../models/Order');
 
 const router = express.Router();
 
+const getKolkataDateString = (date = new Date()) => {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+};
+
+const parseKolkataDate = (dateString) => new Date(`${dateString}T00:00:00+05:30`);
+
 // @POST /api/orders — Create a new order
 router.post('/', [
   body('name').trim().notEmpty().withMessage('Name is required').isLength({ max: 100 }),
   body('phone').matches(/^[0-9]{10}$/).withMessage('Valid 10-digit phone required'),
   body('address').trim().notEmpty().withMessage('Address is required').isLength({ max: 500 }),
   body('service').isIn(['Wash & Fold', 'Wash & Iron', 'Dry Cleaning', 'Steam Iron']).withMessage('Invalid service'),
-  body('pickupDate').isISO8601().withMessage('Valid date required'),
+  body('pickupDate')
+    .matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Valid pickup date required')
+    .custom((value) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return true;
+      if (value < getKolkataDateString()) {
+        throw new Error('Pickup date cannot be in the past');
+      }
+      return true;
+    }),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -25,9 +47,9 @@ router.post('/', [
       phone,
       address,
       service,
-      pickupDate,
+      pickupDate: parseKolkataDate(pickupDate),
       timeline: [{ status: 'Order Placed', description: 'Your order has been confirmed' }],
-      estimatedDelivery: new Date(new Date(pickupDate).getTime() + 2 * 24 * 60 * 60 * 1000), // +2 days
+      estimatedDelivery: new Date(parseKolkataDate(pickupDate).getTime() + 2 * 24 * 60 * 60 * 1000), // +2 days
     });
 
     await order.save();

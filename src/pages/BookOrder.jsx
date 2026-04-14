@@ -3,6 +3,14 @@ import { CalendarDays, User, Phone, MapPin, Shirt, CheckCircle2, Sparkles } from
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://cleanx-backend.onrender.com/api';
 
+const getTodayDateInputValue = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function BookOrder() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -135,7 +143,7 @@ export default function BookOrder() {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Preferred Pickup Date</label>
                 <div className="relative">
                   <CalendarDays className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input type="date" name="pickupDate" value={form.pickupDate} onChange={handleChange} required min={new Date().toISOString().split('T')[0]} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" />
+                  <input type="date" name="pickupDate" value={form.pickupDate} onChange={handleChange} required min={getTodayDateInputValue()} className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" />
                 </div>
               </div>
 
