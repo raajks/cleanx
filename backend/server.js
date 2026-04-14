@@ -30,6 +30,14 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/franchise', require('./routes/franchise'));
 app.use('/api/contact', require('./routes/contact'));
 
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'CleanX backend is running.',
+    health: '/api/health',
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'CleanX API is running!' });
