@@ -77,7 +77,17 @@ export default function Footer() {
         {/* Bottom */}
         <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500">
           <p>&copy; {new Date().getFullYear()} CleanX. All rights reserved.</p>
-          <p>Made with <span className="text-red-400">♥</span> in India</p>
+          <p>
+            Develop & Design by{' '}
+            <a
+              href="https://github.com/raajks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-400 hover:text-primary-300 transition-colors"
+            >
+              Mr. Raj
+            </a>
+          </p>
         </div>
       </div>
     </footer>
