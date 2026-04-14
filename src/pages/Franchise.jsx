@@ -15,7 +15,7 @@ const steps = [
   { num: '04', title: 'Launch & Earn', desc: 'Go live with full marketing support and start earning from day one!' },
 ];
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://cleanx-backend.onrender.com/api';
 
 export default function Franchise() {
   const [submitted, setSubmitted] = useState(false);

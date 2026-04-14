@@ -8,7 +8,7 @@ const contactInfo = [
   { icon: Clock, label: 'Working Hours', value: 'Mon - Sat: 8:00 AM - 9:00 PM, Sun: 9:00 AM - 6:00 PM', link: null, color: 'from-orange-500 to-orange-600' },
 ];
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://cleanx-backend.onrender.com/api';
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);

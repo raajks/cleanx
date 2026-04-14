@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CalendarDays, User, Phone, MapPin, Shirt, CheckCircle2, Sparkles } from 'lucide-react';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://cleanx-backend.onrender.com/api';
 
 export default function BookOrder() {
   const [submitted, setSubmitted] = useState(false);
