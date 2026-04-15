@@ -71,6 +71,36 @@ router.post('/', [
   }
 });
 
+// @GET /api/orders — Get all orders (admin)
+router.get('/', async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json({ success: true, data: orders });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
+// @PUT /api/orders/:id/status — Update order status (admin)
+router.put('/:id/status', [
+  body('status').isIn(['Order Placed', 'Picked Up', 'Cleaning in Progress', 'Out for Delivery', 'Delivered']).withMessage('Invalid status'),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    order.status = req.body.status;
+    order.timeline.push({ status: req.body.status, description: `Status updated to ${req.body.status}` });
+    await order.save();
+    res.json({ success: true, data: order });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
 // @GET /api/orders/track/:orderId — Track an order
 router.get('/track/:orderId', async (req, res) => {
   try {

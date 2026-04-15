@@ -4,13 +4,23 @@ const FranchiseInquiry = require('../models/FranchiseInquiry');
 
 const router = express.Router();
 
+// @GET /api/franchise — Get all franchise inquiries (admin)
+router.get('/', async (req, res) => {
+  try {
+    const inquiries = await FranchiseInquiry.find().sort({ createdAt: -1 });
+    res.json({ success: true, data: inquiries });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+});
+
 // @POST /api/franchise — Submit franchise inquiry
 router.post('/', [
   body('name').trim().notEmpty().withMessage('Name is required').isLength({ max: 100 }),
   body('phone').matches(/^[0-9]{10}$/).withMessage('Valid 10-digit phone required'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
   body('city').trim().notEmpty().withMessage('City is required').isLength({ max: 100 }),
-  body('investment').isIn(['3-5 Lakhs', '5-10 Lakhs', '10-20 Lakhs', '20+ Lakhs']).withMessage('Invalid budget'),
+  body('investment').optional().trim().isLength({ max: 100 }),
   body('message').optional().trim().isLength({ max: 1000 }),
 ], async (req, res) => {
   try {

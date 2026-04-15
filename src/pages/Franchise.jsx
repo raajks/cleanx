@@ -1,201 +1,162 @@
 import React, { useState } from 'react';
-import { TrendingUp, IndianRupee, Headphones, BookOpen, Users, BadgeCheck, Rocket, ArrowRight, CheckCircle2, User, Phone, Mail, MapPin, Building } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Building2, TrendingUp, MapPin, Users, IndianRupee, CheckCircle2, ArrowRight, Phone, Mail, Calculator } from 'lucide-react';
+import { PageBanner, GlassCard, SectionHeader } from '../components/ui';
+import toast from 'react-hot-toast';
 
-const benefits = [
-  { icon: IndianRupee, title: 'Low Investment', desc: 'Start your franchise with an investment as low as ₹3-5 Lakhs. Quick break-even within 6 months.', color: 'from-green-500 to-green-600' },
-  { icon: TrendingUp, title: 'High ROI', desc: 'Earn 40-60% profit margins with our proven business model and repeat customer base.', color: 'from-blue-500 to-blue-600' },
-  { icon: Headphones, title: 'Full Support', desc: 'Complete training, marketing support, technology platform, and operational guidance.', color: 'from-purple-500 to-purple-600' },
-  { icon: BookOpen, title: 'Proven Model', desc: 'Tested and proven business model with 50+ successful franchise partners across India.', color: 'from-orange-500 to-orange-600' },
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+const tiers = [
+  { name: 'Starter', investment: '5–8 Lakh', revenue: '1.5–3 Lakh/mo', area: '200–400 sq ft', color: 'from-primary-500 to-cyan-400', features: ['Basic equipment setup', 'Staff training (5 days)', 'Brand licensing', 'CRM software access', 'Marketing kit'] },
+  { name: 'Professional', investment: '10–15 Lakh', revenue: '4–7 Lakh/mo', area: '400–800 sq ft', color: 'from-cyan-500 to-accent-400', popular: true, features: ['Full equipment package', 'Staff training (10 days)', 'Premium branding', 'Advanced CRM + POS', 'Digital marketing support', 'Dedicated account manager'] },
+  { name: 'Enterprise', investment: '20–30 Lakh', revenue: '8–15 Lakh/mo', area: '800–1500 sq ft', color: 'from-accent-500 to-primary-400', features: ['Industrial-grade equipment', 'Staff training (15 days)', 'Exclusive territory', 'Full tech stack', 'Social media management', 'Revenue guarantee program'] },
 ];
 
-const steps = [
-  { num: '01', title: 'Apply Online', desc: 'Fill the franchise inquiry form with your details and preferred city.' },
-  { num: '02', title: 'Discussion & Agreement', desc: 'Our team contacts you for detailed discussion and franchise agreement.' },
-  { num: '03', title: 'Setup & Training', desc: 'We help you set up the outlet and provide complete operational training.' },
-  { num: '04', title: 'Launch & Earn', desc: 'Go live with full marketing support and start earning from day one!' },
+const stats = [
+  { icon: Building2, value: '50+', label: 'Franchise Partners' },
+  { icon: MapPin, value: '15+', label: 'Cities Covered' },
+  { icon: TrendingUp, value: '35%', label: 'Avg. ROI' },
+  { icon: Users, value: '500+', label: 'Jobs Created' },
 ];
-
-const API_URL = process.env.REACT_APP_API_URL || 'https://cleanx-backend.onrender.com/api';
 
 export default function Franchise() {
-  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', phone: '', city: '', investment: '', message: '' });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [form, setForm] = useState({ name: '', phone: '', email: '', city: '', investment: '', message: '' });
+  const [roiInvestment, setRoiInvestment] = useState(1000000);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.name || !form.email || !form.phone || !form.city) { toast.error('Please fill required fields'); return; }
     setLoading(true);
-    setError('');
     try {
-      const res = await fetch(`${API_URL}/franchise`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
+      const res = await fetch(`${API}/api/franchise`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
       const data = await res.json();
-      if (data.success) {
-        setSubmitted(true);
-      } else {
-        setError(data.errors ? data.errors.map(e => e.msg).join(', ') : data.message);
-      }
-    } catch {
-      setError('Unable to connect to server. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+      if (data.success) { toast.success('Application submitted! Our team will contact you.'); setForm({ name: '', email: '', phone: '', city: '', investment: '', message: '' }); }
+      else toast.error(data.message || 'Something went wrong');
+    } catch { toast.error('Server error. Try again.'); }
+    setLoading(false);
   };
 
+  const roiMonthly = Math.round(roiInvestment * 0.03);
+  const roiYearly = roiMonthly * 12;
+  const roiBreakeven = Math.ceil(roiInvestment / roiMonthly);
+
   return (
-    <div className="pt-16">
-      {/* Hero */}
-      <section className="relative bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 py-24 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-60 -right-60 w-[500px] h-[500px] bg-accent-500/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-60 -left-60 w-[500px] h-[500px] bg-primary-400/10 rounded-full blur-3xl" />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2 bg-accent-500/20 text-accent-300 rounded-full text-sm font-semibold mb-6">
-            <Rocket className="w-4 h-4" /> Franchise Opportunity
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight">
-            Start Your Own Laundry<br />
-            Business with <span className="text-accent-400">CleanX</span>
-          </h1>
-          <p className="text-primary-200 text-lg max-w-3xl mx-auto mb-8">
-            Join India's fastest growing laundry franchise. Low investment, high returns, and complete support to build a profitable business.
-          </p>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/80">
-            {['50+ Partners', '₹3-5L Investment', '40-60% ROI', '6 Month Payback'].map((item, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <BadgeCheck className="w-5 h-5 text-accent-400" />
-                <span className="font-medium">{item}</span>
+    <div>
+      <PageBanner title="Franchise Opportunity" subtitle="Partner with India's fastest-growing premium laundry brand. Low investment, high returns." />
+
+      {/* Stats */}
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6">
+          {stats.map((s, i) => (
+            <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+              className="glass-card p-6 text-center">
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-primary-500 to-cyan-400 flex items-center justify-center mb-3">
+                <s.icon className="w-5 h-5 text-white" />
               </div>
-            ))}
-          </div>
+              <div className="text-2xl font-extrabold text-dark-800">{s.value}</div>
+              <div className="text-xs text-dark-400 font-medium">{s.label}</div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
-      {/* Benefits */}
-      <section className="py-20 lg:py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <span className="text-primary-600 font-semibold text-sm uppercase tracking-wider">Why Partner With Us</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-3">Franchise Benefits</h2>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {benefits.map((b, i) => (
-              <div key={i} className="group bg-white rounded-2xl p-7 border border-gray-100 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/5 transition-all duration-300 hover:-translate-y-1 text-center">
-                <div className={`w-16 h-16 bg-gradient-to-br ${b.color} rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform`}>
-                  <b.icon className="w-8 h-8 text-white" />
+      {/* Investment Tiers */}
+      <section className="py-24 bg-gradient-to-b from-white to-dark-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <SectionHeader badge="Investment Plans" title="Choose Your Franchise Tier" description="Flexible investment options to match your budget and business goals." />
+          <div className="grid md:grid-cols-3 gap-8 mt-12">
+            {tiers.map((tier, i) => (
+              <motion.div key={tier.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }} className="relative">
+                {tier.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-1 bg-gradient-to-r from-cyan-500 to-accent-400 text-white text-xs font-bold rounded-full">MOST POPULAR</div>}
+                <div className={`glass-card p-8 h-full flex flex-col ${tier.popular ? 'ring-2 ring-cyan-400/50 shadow-xl' : ''}`}>
+                  <div className={`w-full h-1.5 rounded-full bg-gradient-to-r ${tier.color} mb-6`} />
+                  <h3 className="text-xl font-extrabold text-dark-800 mb-1">{tier.name}</h3>
+                  <div className="text-2xl font-extrabold gradient-text mb-1">₹{tier.investment}</div>
+                  <div className="text-sm text-dark-400 mb-1">Expected Revenue: <span className="font-semibold text-accent-600">₹{tier.revenue}</span></div>
+                  <div className="text-xs text-dark-400 mb-6">Area: {tier.area}</div>
+                  <ul className="space-y-2.5 mb-8 flex-1">
+                    {tier.features.map((f) => <li key={f} className="flex items-start gap-2 text-sm text-dark-600"><CheckCircle2 className="w-4 h-4 text-accent-500 mt-0.5 flex-shrink-0" /> {f}</li>)}
+                  </ul>
+                  <a href="#inquiry" className={`btn-primary text-center text-sm ${!tier.popular ? '!bg-dark-100 !text-dark-700 hover:!bg-dark-200 !shadow-none' : ''}`}>
+                    Get Started <ArrowRight className="w-4 h-4 inline ml-1" />
+                  </a>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{b.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{b.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Steps to Join */}
-      <section className="py-20 lg:py-28 bg-gradient-to-br from-gray-50 to-primary-50/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <span className="text-primary-600 font-semibold text-sm uppercase tracking-wider">How to Join</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-3">4 Simple Steps to Start</h2>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {steps.map((s, i) => (
-              <div key={i} className="relative group">
-                <div className="bg-white rounded-2xl p-7 border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-center h-full">
-                  <div className="text-4xl font-extrabold text-primary-100 mb-3">{s.num}</div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{s.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Franchise Inquiry Form */}
-      <section className="py-20 lg:py-28 bg-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <span className="text-primary-600 font-semibold text-sm uppercase tracking-wider">Get Started</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-3">Franchise Inquiry</h2>
-            <p className="text-gray-500 mt-3">Fill in your details and our team will get in touch within 24 hours.</p>
-          </div>
-
-          {submitted ? (
-            <div className="text-center animate-fade-up bg-accent-50 rounded-3xl p-10 border border-accent-200">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg shadow-accent-500/25">
-                <CheckCircle2 className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h3>
-              <p className="text-gray-600 mb-1">Thank you, <strong>{form.name}</strong>! We've received your franchise inquiry.</p>
-              <p className="text-gray-400 text-sm">Our team will contact you at <strong>{form.phone}</strong> within 24 hours.</p>
+      {/* ROI Calculator */}
+      <section className="py-24 bg-white">
+        <div className="max-w-3xl mx-auto px-4">
+          <SectionHeader badge="ROI Calculator" title="Estimate Your Returns" description="Slide to see projected revenue based on your investment amount." />
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="glass-card p-8 mt-10">
+            <div className="flex items-center gap-3 mb-2">
+              <Calculator className="w-5 h-5 text-primary-500" />
+              <span className="font-bold text-dark-700">Your Investment</span>
             </div>
-          ) : (
-            <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8 sm:p-10 animate-fade-up">
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
-                    <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="Your full name" className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="tel" name="phone" value={form.phone} onChange={handleChange} required placeholder="9876543210" pattern="[0-9]{10}" className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" />
-                    </div>
-                  </div>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="you@example.com" className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">City / Location</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="text" name="city" value={form.city} onChange={handleChange} required placeholder="Your city" className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" />
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Investment Budget</label>
-                  <div className="relative">
-                    <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <select name="investment" value={form.investment} onChange={handleChange} required className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm appearance-none bg-white">
-                      <option value="">Select budget range</option>
-                      <option value="3-5 Lakhs">₹3 - 5 Lakhs</option>
-                      <option value="5-10 Lakhs">₹5 - 10 Lakhs</option>
-                      <option value="10-20 Lakhs">₹10 - 20 Lakhs</option>
-                      <option value="20+ Lakhs">₹20+ Lakhs</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Message (Optional)</label>
-                  <textarea name="message" value={form.message} onChange={handleChange} rows="3" placeholder="Tell us about your experience or any questions..." className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm resize-none" />
-                </div>
-                <button type="submit" disabled={loading} className="w-full py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 hover:-translate-y-0.5 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-                  {loading ? 'Submitting...' : 'Submit Franchise Inquiry'} {!loading && <ArrowRight className="w-4 h-4" />}
-                </button>
-                {error && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-xl">{error}</p>}
-              </form>
+            <div className="text-3xl font-extrabold gradient-text mb-4">₹{(roiInvestment / 100000).toFixed(1)} Lakh</div>
+            <input type="range" min={300000} max={3000000} step={100000} value={roiInvestment} onChange={(e) => setRoiInvestment(Number(e.target.value))}
+              className="w-full h-2 bg-dark-200 rounded-full accent-primary-500 cursor-pointer mb-8" />
+            <div className="grid grid-cols-3 gap-4">
+              <div className="glass p-4 rounded-xl text-center"><div className="text-xs text-dark-400 mb-1">Monthly Revenue</div><div className="text-lg font-extrabold text-accent-600">₹{(roiMonthly / 1000).toFixed(0)}K</div></div>
+              <div className="glass p-4 rounded-xl text-center"><div className="text-xs text-dark-400 mb-1">Yearly Revenue</div><div className="text-lg font-extrabold text-primary-600">₹{(roiYearly / 100000).toFixed(1)}L</div></div>
+              <div className="glass p-4 rounded-xl text-center"><div className="text-xs text-dark-400 mb-1">Break-even</div><div className="text-lg font-extrabold text-dark-700">{roiBreakeven} mo</div></div>
             </div>
-          )}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Inquiry Form */}
+      <section id="inquiry" className="py-24 bg-gradient-to-b from-dark-50 to-white">
+        <div className="max-w-3xl mx-auto px-4">
+          <SectionHeader badge="Apply Now" title="Franchise Inquiry" description="Fill in your details and our franchise team will reach out within 24 hours." />
+          <motion.form onSubmit={handleSubmit} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="glass-card p-8 mt-10 space-y-5">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-dark-500 mb-1.5 block">Full Name *</label>
+                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your name"
+                  className="w-full px-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-dark-500 mb-1.5 block">Email *</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="you@email.com"
+                  className="w-full px-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-dark-500 mb-1.5 block">Phone *</label>
+                <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="9876543210"
+                  className="w-full px-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-dark-500 mb-1.5 block">City *</label>
+                <input type="text" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Your city"
+                  className="w-full px-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-dark-500 mb-1.5 block">Investment Budget</label>
+              <select value={form.investment} onChange={(e) => setForm({ ...form, investment: e.target.value })}
+                className="w-full px-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm bg-white">
+                <option value="">Select range</option>
+                <option value="5-8 Lakh">₹5–8 Lakh (Starter)</option>
+                <option value="10-15 Lakh">₹10–15 Lakh (Professional)</option>
+                <option value="20-30 Lakh">₹20–30 Lakh (Enterprise)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-dark-500 mb-1.5 block">Message</label>
+              <textarea rows={3} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Any questions or comments..."
+                className="w-full px-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm resize-none" />
+            </div>
+            <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 !py-4 text-sm font-bold">
+              {loading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Submit Application <ArrowRight className="w-4 h-4" /></>}
+            </button>
+          </motion.form>
         </div>
       </section>
     </div>
