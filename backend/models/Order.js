@@ -16,6 +16,11 @@ const orderSchema = new mongoose.Schema({
     required: true,
     match: /^[0-9]{10}$/,
   },
+  email: {
+    type: String,
+    trim: true,
+    lowercase: true,
+  },
   address: {
     type: String,
     required: true,

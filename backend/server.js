@@ -26,6 +26,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // Routes
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/franchise', require('./routes/franchise'));
 app.use('/api/contact', require('./routes/contact'));

@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { User, Mail, Lock, Phone, Eye, EyeOff, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 export default function Signup() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
@@ -11,9 +13,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
 
   const passwordChecks = [
-    { label: 'At least 8 characters', ok: form.password.length >= 8 },
-    { label: 'One uppercase letter', ok: /[A-Z]/.test(form.password) },
-    { label: 'One number', ok: /\d/.test(form.password) },
+    { label: 'At least 6 characters', ok: form.password.length >= 6 },
   ];
 
   const handleSubmit = async (e) => {
@@ -22,12 +22,23 @@ export default function Signup() {
     if (form.password !== form.confirmPassword) { toast.error('Passwords do not match'); return; }
     if (!passwordChecks.every(c => c.ok)) { toast.error('Password does not meet requirements'); return; }
     setLoading(true);
-    // Placeholder—will wire to backend JWT auth
-    setTimeout(() => {
-      toast.success('Account created successfully!');
-      setLoading(false);
-      navigate('/login');
-    }, 1200);
+    try {
+      const res = await fetch(`${API}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, password: form.password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Account created successfully!');
+        navigate('/login');
+      } else {
+        toast.error(data.message || 'Registration failed');
+      }
+    } catch (err) {
+      toast.error('Server not reachable. Please try again.');
+    }
+    setLoading(false);
   };
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });

@@ -53,7 +53,7 @@ export default function Home() {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
                 className="inline-flex items-center gap-2 px-5 py-2 bg-white/5 backdrop-blur-sm text-primary-300 rounded-full text-sm font-semibold mb-8 border border-white/10">
                 <Zap className="w-4 h-4 text-primary-400" />
-                #1 Laundry Service in Rajasthan
+                #1 Laundry Service in Ghaziabad
               </motion.div>
 
               <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
@@ -152,7 +152,7 @@ export default function Home() {
       {/* Why Choose Us */}
       <section className="py-24 bg-gradient-to-b from-white to-dark-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader badge="✨ Why Choose Us" title="What Makes Us Different" description="We combine technology with quality to deliver the best laundry experience in Rajasthan." />
+          <SectionHeader badge="✨ Why Choose Us" title="What Makes Us Different" description="We combine technology with quality to deliver the best laundry experience in Ghaziabad." />
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f, i) => (
               <FeatureCard key={i} icon={f.icon} title={f.title} description={f.desc} color={f.color} delay={i * 0.1} />
@@ -199,7 +199,7 @@ export default function Home() {
       {/* Testimonials */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader badge="💬 Testimonials" title="Loved by Thousands" description="Real reviews from real customers across Rajasthan." />
+          <SectionHeader badge="💬 Testimonials" title="Loved by Thousands" description="Real reviews from real customers across Ghaziabad." />
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((t, i) => (
               <GlassCard key={i} delay={i * 0.15} className="p-8">
@@ -238,7 +238,7 @@ export default function Home() {
                 <span className="gradient-text">Premium Laundry?</span>
               </motion.h2>
               <motion.p {...fadeInUp} className="text-dark-300 text-lg mb-10 leading-relaxed">
-                Join 10,000+ happy customers across Rajasthan. Book your first pickup today and get <span className="text-primary-400 font-bold">20% OFF</span> on your first order!
+                Join 10,000+ happy customers across Ghaziabad. Book your first pickup today and get <span className="text-primary-400 font-bold">20% OFF</span> on your first order!
               </motion.p>
               <motion.div {...fadeInUp} className="flex flex-wrap gap-4">
                 <Link to="/book" className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-500 to-cyan-400 text-white font-bold rounded-2xl shadow-2xl shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1 transition-all">

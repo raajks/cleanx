@@ -43,7 +43,7 @@ export default function Footer() {
               </div>
               <span className="text-xl font-extrabold text-white">Clean<span className="gradient-text">X</span></span>
             </div>
-            <p className="text-sm text-dark-400 mb-6 leading-relaxed">Smart Laundry. Delivered Fresh. Premium laundry and dry cleaning services at your doorstep across Rajasthan.</p>
+            <p className="text-sm text-dark-400 mb-6 leading-relaxed">Smart Laundry. Delivered Fresh. Premium laundry and dry cleaning services at your doorstep across Ghaziabad.</p>
             <div className="flex gap-2.5">
               {[Instagram, Facebook, Twitter, Youtube].map((Icon, i) => (
                 <a key={i} href="#!" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-gradient-to-br hover:from-primary-500 hover:to-cyan-400 hover:text-white transition-all group border border-white/5 hover:border-transparent">
@@ -117,7 +117,7 @@ export default function Footer() {
                 </div>
                 <div>
                   <div className="text-dark-500 text-xs mb-0.5">Address</div>
-                  <span className="text-white font-medium">123 Clean Street, Jaipur, Rajasthan</span>
+                  <span className="text-white font-medium">123 Clean Street, Ghaziabad, Uttar Pradesh</span>
                 </div>
               </li>
             </ul>

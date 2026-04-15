@@ -1,6 +1,8 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Order = require('../models/Order');
+const User = require('../models/User');
+const { sendOrderConfirmationEmail, sendOrderStatusEmail } = require('../utils/mailer');
 
 const router = express.Router();
 
@@ -40,11 +42,12 @@ router.post('/', [
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { name, phone, address, service, pickupDate } = req.body;
+    const { name, phone, email, address, service, pickupDate } = req.body;
 
     const order = new Order({
       name,
       phone,
+      email: email || null,
       address,
       service,
       pickupDate: parseKolkataDate(pickupDate),
@@ -53,6 +56,16 @@ router.post('/', [
     });
 
     await order.save();
+
+    // Find email: from form, or from registered user by phone
+    let emailTo = email;
+    if (!emailTo) {
+      const registeredUser = await User.findOne({ phone });
+      if (registeredUser) emailTo = registeredUser.email;
+    }
+    if (emailTo) {
+      sendOrderConfirmationEmail(emailTo, order).catch(() => {});
+    }
 
     res.status(201).json({
       success: true,
@@ -95,6 +108,17 @@ router.put('/:id/status', [
     order.status = req.body.status;
     order.timeline.push({ status: req.body.status, description: `Status updated to ${req.body.status}` });
     await order.save();
+
+    // Send status update email
+    let emailTo = order.email;
+    if (!emailTo) {
+      const registeredUser = await User.findOne({ phone: order.phone });
+      if (registeredUser) emailTo = registeredUser.email;
+    }
+    if (emailTo) {
+      sendOrderStatusEmail(emailTo, order).catch(() => {});
+    }
+
     res.json({ success: true, data: order });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error.' });

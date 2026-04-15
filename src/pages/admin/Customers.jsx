@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Search, Phone, MapPin, Package, IndianRupee, RefreshCw, X, ChevronRight, Calendar, Star } from 'lucide-react';
+import { Users, Search, Phone, MapPin, Package, IndianRupee, RefreshCw, X, ChevronRight, Calendar, Star, Mail, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -27,27 +27,34 @@ export default function AdminCustomers() {
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/orders`);
-      const data = await res.json();
-      if (data.success) {
-        const orders = data.data;
-        // Group by phone to build customer profiles
-        const map = {};
-        orders.forEach((o) => {
+      // Fetch both orders and registered users in parallel
+      const [ordersRes, usersRes] = await Promise.all([
+        fetch(`${API}/api/orders`),
+        fetch(`${API}/api/auth/users`),
+      ]);
+      const ordersData = await ordersRes.json();
+      const usersData = await usersRes.json();
+
+      // Build customer map from orders (grouped by phone)
+      const map = {};
+      if (ordersData.success) {
+        ordersData.data.forEach((o) => {
           if (!map[o.phone]) {
             map[o.phone] = {
               phone: o.phone,
               name: o.name,
+              email: null,
               address: o.address,
               orders: [],
               totalSpent: 0,
               firstOrder: o.createdAt,
               lastOrder: o.createdAt,
+              registered: false,
+              joinedAt: null,
             };
           }
           const c = map[o.phone];
           c.orders.push(o);
-          // Use latest name/address
           if (new Date(o.createdAt) > new Date(c.lastOrder)) {
             c.name = o.name;
             c.address = o.address;
@@ -56,12 +63,44 @@ export default function AdminCustomers() {
           if (new Date(o.createdAt) < new Date(c.firstOrder)) {
             c.firstOrder = o.createdAt;
           }
-          // Estimate spend: ₹299 per order (placeholder)
           c.totalSpent += 299;
         });
-        const list = Object.values(map).sort((a, b) => b.orders.length - a.orders.length);
-        setCustomers(list);
       }
+
+      // Merge registered users
+      if (usersData.success) {
+        usersData.data.forEach((u) => {
+          const phone = u.phone;
+          if (map[phone]) {
+            // User already exists from orders — enrich with registration info
+            map[phone].email = u.email;
+            map[phone].registered = true;
+            map[phone].joinedAt = u.createdAt;
+            if (u.name) map[phone].name = u.name;
+          } else {
+            // Registered user with no orders yet
+            map[phone] = {
+              phone: u.phone,
+              name: u.name,
+              email: u.email,
+              address: null,
+              orders: [],
+              totalSpent: 0,
+              firstOrder: null,
+              lastOrder: null,
+              registered: true,
+              joinedAt: u.createdAt,
+            };
+          }
+        });
+      }
+
+      const list = Object.values(map).sort((a, b) => {
+        // Registered users with orders first, then registered without orders, then unregistered
+        if (b.orders.length !== a.orders.length) return b.orders.length - a.orders.length;
+        return (b.registered ? 1 : 0) - (a.registered ? 1 : 0);
+      });
+      setCustomers(list);
     } catch { toast.error('Failed to fetch customers'); }
     setLoading(false);
   };
@@ -69,11 +108,12 @@ export default function AdminCustomers() {
   const filtered = customers.filter((c) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return c.name?.toLowerCase().includes(q) || c.phone?.includes(q) || c.address?.toLowerCase().includes(q);
+    return c.name?.toLowerCase().includes(q) || c.phone?.includes(q) || c.address?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q);
   });
 
   const totalOrders = customers.reduce((sum, c) => sum + c.orders.length, 0);
   const totalRevenue = customers.reduce((sum, c) => sum + c.totalSpent, 0);
+  const registeredUsers = customers.filter(c => c.registered).length;
   const repeatCustomers = customers.filter(c => c.orders.length > 1).length;
 
   return (
@@ -92,9 +132,9 @@ export default function AdminCustomers() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Customers', value: customers.length, icon: Users, color: 'from-primary-500 to-cyan-400' },
+          { label: 'Registered Users', value: registeredUsers, icon: UserCheck, color: 'from-green-500 to-emerald-400' },
           { label: 'Total Orders', value: totalOrders, icon: Package, color: 'from-cyan-500 to-accent-400' },
           { label: 'Revenue (Est.)', value: `₹${totalRevenue.toLocaleString('en-IN')}`, icon: IndianRupee, color: 'from-accent-500 to-primary-400' },
-          { label: 'Repeat Customers', value: repeatCustomers, icon: Star, color: 'from-orange-500 to-red-400' },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
             className="bg-white rounded-2xl p-5 shadow-sm border border-dark-100">
@@ -122,10 +162,10 @@ export default function AdminCustomers() {
               <tr className="bg-dark-50 text-dark-500 text-xs">
                 <th className="text-left px-6 py-3 font-semibold">Customer</th>
                 <th className="text-left px-6 py-3 font-semibold">Phone</th>
+                <th className="text-left px-6 py-3 font-semibold">Status</th>
                 <th className="text-left px-6 py-3 font-semibold">Orders</th>
                 <th className="text-left px-6 py-3 font-semibold">Spent (Est.)</th>
-                <th className="text-left px-6 py-3 font-semibold">First Order</th>
-                <th className="text-left px-6 py-3 font-semibold">Last Order</th>
+                <th className="text-left px-6 py-3 font-semibold">Joined</th>
                 <th className="text-left px-6 py-3 font-semibold">Details</th>
               </tr>
             </thead>
@@ -141,22 +181,28 @@ export default function AdminCustomers() {
                     <tr key={c.phone} className="border-t border-dark-100 hover:bg-dark-50/50 transition-colors">
                       <td className="px-6 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-cyan-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{initials}</div>
+                          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${c.registered ? 'from-green-500 to-emerald-400' : 'from-primary-500 to-cyan-400'} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>{initials}</div>
                           <div>
                             <div className="font-semibold text-dark-800">{c.name}</div>
-                            <div className="text-[11px] text-dark-400 truncate max-w-[180px]">{c.address}</div>
+                            <div className="text-[11px] text-dark-400 truncate max-w-[180px]">{c.email || c.address || '—'}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-3 text-dark-600 font-medium">{c.phone}</td>
                       <td className="px-6 py-3">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${c.orders.length > 2 ? 'bg-accent-100 text-accent-700' : 'bg-dark-100 text-dark-600'}`}>
-                          {c.orders.length} order{c.orders.length > 1 ? 's' : ''}
+                        {c.registered ? (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Registered</span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-dark-100 text-dark-500">Guest</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${c.orders.length > 0 ? 'bg-accent-100 text-accent-700' : 'bg-dark-100 text-dark-400'}`}>
+                          {c.orders.length} order{c.orders.length !== 1 ? 's' : ''}
                         </span>
                       </td>
-                      <td className="px-6 py-3 font-semibold text-dark-700">₹{c.totalSpent.toLocaleString('en-IN')}</td>
-                      <td className="px-6 py-3 text-dark-400 text-xs">{new Date(c.firstOrder).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
-                      <td className="px-6 py-3 text-dark-400 text-xs">{new Date(c.lastOrder).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                      <td className="px-6 py-3 font-semibold text-dark-700">{c.totalSpent > 0 ? `₹${c.totalSpent.toLocaleString('en-IN')}` : '—'}</td>
+                      <td className="px-6 py-3 text-dark-400 text-xs">{c.joinedAt ? new Date(c.joinedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : c.firstOrder ? new Date(c.firstOrder).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
                       <td className="px-6 py-3">
                         <button onClick={() => setSelectedCustomer(c)} className="p-2 rounded-lg hover:bg-primary-50 text-dark-400 hover:text-primary-500 transition-colors">
                           <ChevronRight className="w-4 h-4" />
@@ -194,23 +240,32 @@ export default function AdminCustomers() {
                 {/* Profile Card */}
                 <div className="bg-gradient-to-br from-dark-900 to-primary-900 rounded-2xl p-6 text-white mb-6">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center text-lg font-bold">
+                    <div className={`w-14 h-14 rounded-2xl ${selectedCustomer.registered ? 'bg-green-500/20' : 'bg-white/10'} backdrop-blur flex items-center justify-center text-lg font-bold`}>
                       {selectedCustomer.name?.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
                     </div>
                     <div>
                       <div className="text-lg font-bold">{selectedCustomer.name}</div>
                       <div className="text-sm text-dark-400 flex items-center gap-1.5"><Phone className="w-3 h-3" /> {selectedCustomer.phone}</div>
+                      {selectedCustomer.email && <div className="text-sm text-dark-400 flex items-center gap-1.5 mt-0.5"><Mail className="w-3 h-3" /> {selectedCustomer.email}</div>}
                     </div>
                   </div>
-                  <div className="text-xs text-dark-400 flex items-start gap-1.5"><MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" /> {selectedCustomer.address}</div>
+                  {selectedCustomer.address && <div className="text-xs text-dark-400 flex items-start gap-1.5 mb-2"><MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" /> {selectedCustomer.address}</div>}
+                  <div className="flex items-center gap-2 mt-2">
+                    {selectedCustomer.registered ? (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-500/20 text-green-300">✓ Registered User</span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/10 text-dark-300">Guest</span>
+                    )}
+                    {selectedCustomer.joinedAt && <span className="text-[10px] text-dark-400">Joined {new Date(selectedCustomer.joinedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                  </div>
                 </div>
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-3 gap-3 mb-6">
                   {[
                     { label: 'Orders', value: selectedCustomer.orders.length },
-                    { label: 'Spent', value: `₹${selectedCustomer.totalSpent}` },
-                    { label: 'Type', value: selectedCustomer.orders.length > 2 ? 'Loyal' : selectedCustomer.orders.length > 1 ? 'Repeat' : 'New' },
+                    { label: 'Spent', value: selectedCustomer.totalSpent > 0 ? `₹${selectedCustomer.totalSpent}` : '₹0' },
+                    { label: 'Type', value: selectedCustomer.orders.length > 2 ? 'Loyal' : selectedCustomer.orders.length > 1 ? 'Repeat' : selectedCustomer.orders.length === 1 ? 'New' : 'No Orders' },
                   ].map((s) => (
                     <div key={s.label} className="bg-dark-50 rounded-xl p-3 text-center">
                       <div className="text-lg font-extrabold text-dark-800">{s.value}</div>
@@ -222,7 +277,9 @@ export default function AdminCustomers() {
                 {/* Order History */}
                 <h4 className="font-bold text-dark-800 text-sm mb-3">Order History</h4>
                 <div className="space-y-3">
-                  {selectedCustomer.orders.map((o) => (
+                  {selectedCustomer.orders.length === 0 ? (
+                    <div className="bg-dark-50 rounded-xl p-6 text-center text-dark-400 text-sm">No orders yet</div>
+                  ) : selectedCustomer.orders.map((o) => (
                     <div key={o._id} className="bg-dark-50 rounded-xl p-4 flex items-center justify-between">
                       <div>
                         <div className="text-xs font-bold text-primary-600 mb-0.5">{o.orderId}</div>

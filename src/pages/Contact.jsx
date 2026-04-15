@@ -9,7 +9,7 @@ const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const contactInfo = [
   { icon: Phone, label: 'Phone', value: '+91 98765 43210', href: 'tel:+919876543210', color: 'from-primary-500 to-cyan-400' },
   { icon: Mail, label: 'Email', value: 'support@cleanx.in', href: 'mailto:support@cleanx.in', color: 'from-cyan-500 to-accent-400' },
-  { icon: MapPin, label: 'Head Office', value: 'Ahmedabad, Gujarat, India', href: '#', color: 'from-accent-500 to-primary-400' },
+  { icon: MapPin, label: 'Head Office', value: 'Ghaziabad, Uttar Pradesh, India', href: '#', color: 'from-accent-500 to-primary-400' },
   { icon: Clock, label: 'Working Hours', value: 'Mon–Sat: 8AM – 9PM', href: '#', color: 'from-primary-400 to-cyan-500' },
 ];
 
@@ -131,7 +131,7 @@ export default function Contact() {
               <div className="glass-card overflow-hidden h-48">
                 <iframe
                   title="CleanX Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d235014.29918006958!2d72.41492706895907!3d23.020158896498844!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e848aba5bd449%3A0x4fcedd11614f6516!2sAhmedabad%2C%20Gujarat!5e0!3m2!1sen!2sin!4v1700000000000"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d112173.07237124025!2d77.3902085!3d28.6692987!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cf1bb04c2bbe7%3A0x7efb961723eb17a!2sGhaziabad%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1700000000000"
                   width="100%" height="100%" style={{ border: 0 }} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"
                 />
               </div>

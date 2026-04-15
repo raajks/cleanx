@@ -11,7 +11,7 @@ const values = [
 ];
 
 const milestones = [
-  { year: '2023', title: 'Founded', desc: 'CleanX launched in Ahmedabad with a vision to disrupt the laundry industry.' },
+  { year: '2023', title: 'Founded', desc: 'CleanX launched in Ghaziabad with a vision to disrupt the laundry industry.' },
   { year: '2023', title: 'First 1,000 Orders', desc: 'Rapid adoption through quality service and word-of-mouth referrals.' },
   { year: '2024', title: 'Franchise Launch', desc: 'Opened franchise applications and expanded to 5 cities.' },
   { year: '2025', title: '10K+ Customers', desc: 'Crossed 10,000 active customers with 50,000+ orders delivered.' },

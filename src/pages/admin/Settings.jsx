@@ -18,12 +18,12 @@ export default function AdminSettings() {
     tagline: 'Smart Laundry. Delivered Fresh.',
     phone: '+91 98765 43210',
     email: 'support@cleanx.in',
-    address: '123 Clean Street, Ahmedabad, Gujarat',
+    address: '123 Clean Street, Ghaziabad, Uttar Pradesh',
     website: 'https://cleanx.in',
   });
 
   // Service Areas
-  const [areas, setAreas] = useState(['Ahmedabad', 'Jaipur', 'Surat', 'Mumbai', 'Pune']);
+  const [areas, setAreas] = useState(['Ghaziabad', 'Noida', 'Delhi', 'Greater Noida', 'Faridabad']);
   const [newArea, setNewArea] = useState('');
 
   // Pricing

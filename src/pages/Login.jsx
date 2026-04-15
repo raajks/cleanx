@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
@@ -14,12 +16,26 @@ export default function Login() {
     e.preventDefault();
     if (!form.email || !form.password) { toast.error('Please fill all fields'); return; }
     setLoading(true);
-    // Placeholder—will wire to backend JWT auth
-    setTimeout(() => {
-      toast.success('Login successful!');
-      setLoading(false);
-      navigate('/');
-    }, 1200);
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, password: form.password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem('cleanx_token', data.token);
+        localStorage.setItem('cleanx_user', JSON.stringify(data.user));
+        window.dispatchEvent(new Event('storage'));
+        toast.success('Login successful!');
+        navigate('/');
+      } else {
+        toast.error(data.message || 'Invalid email or password');
+      }
+    } catch (err) {
+      toast.error('Server not reachable. Please try again.');
+    }
+    setLoading(false);
   };
 
   return (

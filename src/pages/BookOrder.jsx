@@ -1,7 +1,7 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Package, MapPin, Phone, User, Calendar, ArrowRight, Sparkles, Clock, Truck } from 'lucide-react';
+import { CheckCircle2, Package, MapPin, Phone, User, Calendar, ArrowRight, Sparkles, Clock, Truck, Mail } from 'lucide-react';
 import { PageBanner } from '../components/ui';
 import toast from 'react-hot-toast';
 
@@ -9,9 +9,24 @@ const API = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const services = ['Wash & Fold', 'Wash & Iron', 'Dry Cleaning', 'Steam Iron'];
 
 export default function BookOrder() {
-  const [form, setForm] = useState({ name: '', phone: '', address: '', service: '', pickupDate: '' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', service: '', pickupDate: '' });
   const [loading, setLoading] = useState(false);
   const [order, setOrder] = useState(null);
+
+  // Auto-fill from logged-in user
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem('cleanx_user'));
+      if (user) {
+        setForm(prev => ({
+          ...prev,
+          name: user.name || '',
+          phone: user.phone || '',
+          email: user.email || '',
+        }));
+      }
+    } catch {}
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,11 +70,11 @@ export default function BookOrder() {
               </div>
               <div className="bg-primary-50 rounded-2xl p-4 mb-8 flex items-center gap-3">
                 <Clock className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                <p className="text-sm text-primary-700">Save your Order ID. SMS/WhatsApp notification will be sent.</p>
+                <p className="text-sm text-primary-700">Order confirmation & updates will be sent to your email.</p>
               </div>
               <div className="flex gap-3 justify-center">
                 <Link to={`/track?orderId=${order.orderId}`} className="btn-primary flex items-center gap-2"><Package className="w-4 h-4" /> Track Order</Link>
-                <button onClick={() => { setOrder(null); setForm({ name: '', phone: '', address: '', service: '', pickupDate: '' }); }} className="btn-secondary">Book Another</button>
+                <button onClick={() => { setOrder(null); setForm({ name: '', phone: '', email: '', address: '', service: '', pickupDate: '' }); }} className="btn-secondary">Book Another</button>
               </div>
             </motion.div>
           </div>
@@ -94,12 +109,17 @@ export default function BookOrder() {
                 <div>
                   <label className="block text-sm font-semibold text-dark-600 mb-1.5">Full Name</label>
                   <div className="relative"><User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
-                    <input type="text" name="name" value={form.name} onChange={handleChange} required maxLength={100} className="w-full pl-11 pr-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" placeholder="John Doe" /></div>
+                    <input type="text" name="name" value={form.name} onChange={handleChange} required maxLength={100} className="w-full pl-11 pr-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" placeholder="Mr. Raj" /></div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-dark-600 mb-1.5">Phone Number</label>
                   <div className="relative"><Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
                     <input type="tel" name="phone" value={form.phone} onChange={handleChange} required pattern="[0-9]{10}" maxLength={10} className="w-full pl-11 pr-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" placeholder="9876543210" /></div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark-600 mb-1.5">Email Address</label>
+                  <div className="relative"><Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
+                    <input type="email" name="email" value={form.email} onChange={handleChange} required className="w-full pl-11 pr-4 py-3 border border-dark-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm" placeholder="your@email.com" /></div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-dark-600 mb-1.5">Pickup Address</label>

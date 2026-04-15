@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Sparkles, ChevronDown, User, LogIn } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Sparkles, ChevronDown, User, LogIn, LogOut, LayoutDashboard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navLinks = [
@@ -23,7 +23,25 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [dropdown, setDropdown] = useState(false);
+  const [userMenu, setUserMenu] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const userMenuRef = useRef(null);
+
+  // Auth state
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cleanx_user')); } catch { return null; }
+  });
+
+  useEffect(() => {
+    const handleStorage = () => {
+      try { setUser(JSON.parse(localStorage.getItem('cleanx_user'))); } catch { setUser(null); }
+    };
+    window.addEventListener('storage', handleStorage);
+    // Also check on route change
+    handleStorage();
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [location]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -31,7 +49,22 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => { setOpen(false); setDropdown(false); }, [location]);
+  useEffect(() => { setOpen(false); setDropdown(false); setUserMenu(false); }, [location]);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handleClick = (e) => { if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenu(false); };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('cleanx_token');
+    localStorage.removeItem('cleanx_user');
+    setUser(null);
+    setUserMenu(false);
+    navigate('/');
+  };
 
   const isHome = location.pathname === '/';
   const navBg = scrolled
@@ -105,9 +138,49 @@ export default function Navbar() {
 
           {/* CTA */}
           <div className="hidden lg:flex items-center gap-3">
-            <Link to="/login" className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${scrolled || !isHome ? 'text-dark-500 hover:text-primary-600' : 'text-white/80 hover:text-white'}`}>
-              <LogIn className="w-4 h-4" /> Login
-            </Link>
+            {user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button onClick={() => setUserMenu(!userMenu)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${scrolled || !isHome ? 'text-dark-600 hover:bg-primary-50' : 'text-white/90 hover:bg-white/10'}`}>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-cyan-400 flex items-center justify-center text-white text-xs font-bold">
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <span className="max-w-[100px] truncate">{user.name?.split(' ')[0]}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${userMenu ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {userMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 top-full mt-2 w-56 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl shadow-dark-900/10 border border-white/50 p-2 overflow-hidden"
+                    >
+                      <div className="px-4 py-3 border-b border-dark-100 mb-1">
+                        <div className="font-semibold text-dark-800 text-sm">{user.name}</div>
+                        <div className="text-xs text-dark-400 truncate">{user.email}</div>
+                      </div>
+                      <Link to="/track" className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-dark-600 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                        <Sparkles className="w-4 h-4" /> Track Order
+                      </Link>
+                      {user.role === 'admin' && (
+                        <Link to="/admin" className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-dark-600 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                          <LayoutDashboard className="w-4 h-4" /> Admin Panel
+                        </Link>
+                      )}
+                      <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all">
+                        <LogOut className="w-4 h-4" /> Logout
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link to="/login" className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${scrolled || !isHome ? 'text-dark-500 hover:text-primary-600' : 'text-white/80 hover:text-white'}`}>
+                <LogIn className="w-4 h-4" /> Login
+              </Link>
+            )}
             <Link to="/book" className="btn-primary text-sm !px-5 !py-2.5 flex items-center gap-2">
               <Sparkles className="w-4 h-4" /> Book Pickup
             </Link>
@@ -152,9 +225,26 @@ export default function Navbar() {
                 )
               ))}
               <div className="flex gap-2 pt-3">
-                <Link to="/login" className="flex-1 text-center px-4 py-2.5 border-2 border-dark-200 text-dark-600 rounded-xl text-sm font-semibold hover:bg-dark-50 transition-all">
-                  Login
-                </Link>
+                {user ? (
+                  <>
+                    <div className="flex-1 flex items-center gap-3 px-4 py-2.5 bg-dark-50 rounded-xl">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-cyan-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {user.name?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-dark-800 truncate">{user.name}</div>
+                        <div className="text-[10px] text-dark-400 truncate">{user.email}</div>
+                      </div>
+                    </div>
+                    <button onClick={handleLogout} className="px-4 py-2.5 border-2 border-red-200 text-red-500 rounded-xl text-sm font-semibold hover:bg-red-50 transition-all">
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </>
+                ) : (
+                  <Link to="/login" className="flex-1 text-center px-4 py-2.5 border-2 border-dark-200 text-dark-600 rounded-xl text-sm font-semibold hover:bg-dark-50 transition-all">
+                    Login
+                  </Link>
+                )}
                 <Link to="/book" className="flex-1 text-center btn-primary text-sm !py-2.5">
                   Book Pickup
                 </Link>
