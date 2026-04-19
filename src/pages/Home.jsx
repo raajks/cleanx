@@ -257,9 +257,9 @@ export default function Home() {
                 <h3 className="text-2xl font-bold mb-3">Download Our App</h3>
                 <p className="text-dark-400 mb-8 text-sm">Book, track, and manage your orders with ease.</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <div className="px-6 py-3.5 bg-white/5 rounded-xl text-sm font-medium border border-white/10 hover:bg-white/10 transition-all cursor-pointer">
-                    📱 Google Play — Coming Soon
-                  </div>
+                  <a href="/CleanX.apk" download="CleanX.apk" className="px-6 py-3.5 bg-gradient-to-r from-primary-500 to-cyan-400 rounded-xl text-sm font-bold border border-white/10 hover:shadow-primary-500/50 hover:-translate-y-1 transition-all cursor-pointer text-white no-underline">
+                    📱 Download App (Android)
+                  </a>
                   <div className="px-6 py-3.5 bg-white/5 rounded-xl text-sm font-medium border border-white/10 hover:bg-white/10 transition-all cursor-pointer">
                     🍎 App Store — Coming Soon
                   </div>
